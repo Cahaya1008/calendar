@@ -10,9 +10,14 @@
   <canvas id="snowCanvas"></canvas>
 
   <h1>🎄 Advent Calendar Scavenger Hunt 🎁</h1>
-  <p>Each day unlocks a new box! Explore, answer trivia, and collect letters!</p>
+  <p>Each day unlocks a new box. Explore, answer trivia, find letters, and decode the final message!</p>
 
   <div id="calendar" class="calendar"></div>
+
+  <div id="progress">
+    <h3>Your Collected Letters:</h3>
+    <div id="lettersFound">(none yet)</div>
+  </div>
 
   <button id="resetProgress">🔁 Reset Progress</button>
 
@@ -27,6 +32,11 @@
       <p id="feedback"></p>
     </div>
   </div>
+
+  <!-- Hidden “easter eggs” -->
+  <div class="hidden-message" style="top:10%; left:5%;">🌟 Psst... the stars hold secrets.</div>
+  <div class="hidden-message" style="bottom:15%; right:10%;">✨ Sometimes, numbers hide letters...</div>
+  <div class="hidden-message" style="bottom:5%; left:40%;">❄️ Look closer on Day 12.</div>
 
   <script src="data.js"></script>
   <script src="script.js"></script>
