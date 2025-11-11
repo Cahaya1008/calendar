@@ -89,6 +89,40 @@ resetButton.addEventListener("click", () => {
 });
 
 renderCalendar();
+// ---- Cipher Message Section ---- //
+const cipherTextEl = document.getElementById("cipherText");
+const decodedTextEl = document.getElementById("decodedText");
+
+const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const cipher = finalMessage
+  .toUpperCase()
+  .split("")
+  .map(ch => (alphabet.includes(ch) ? alphabet.indexOf(ch) + 1 : ch))
+  .join(" ");
+
+function updateCipherDisplay() {
+  cipherTextEl.textContent = cipher;
+  const uniqueLettersInMessage = [...new Set(finalMessage.replace(/[^A-Z]/g, ""))];
+  const collectedAll = uniqueLettersInMessage.every(l => foundLetters.includes(l));
+  
+  if (collectedAll || previewMode) {
+    decodedTextEl.textContent = `"${finalMessage}"`;
+    decodedTextEl.classList.remove("hidden");
+  } else {
+    decodedTextEl.classList.add("hidden");
+  }
+}
+
+function updateLettersDisplay() {
+  if (foundLetters.length === 0) {
+    lettersFoundDiv.textContent = "(none yet)";
+  } else {
+    lettersFoundDiv.textContent = foundLetters.join(" ");
+  }
+  updateCipherDisplay();
+}
+
 startSnow();
 function startSnow() {
   const canvas = document.getElementById("snowCanvas");
