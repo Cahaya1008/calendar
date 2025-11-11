@@ -5,21 +5,21 @@ const triviaAnswer = document.getElementById("triviaAnswer");
 const submitAnswer = document.getElementById("submitAnswer");
 const triviaFeedback = document.getElementById("triviaFeedback");
 const closeModal = document.getElementById("closeModal");
-triviaModal.classList.add("hidden"); // ensure hidden on load
-
 const lettersFoundDiv = document.getElementById("lettersFound");
 const resetBtn = document.getElementById("resetBtn");
 
 const previewMode = window.location.search.includes("preview=true");
 let today = new Date();
-let currentDay = today.getMonth() === 11 ? today.getDate() : 0; // December only
+let currentDay = today.getMonth() === 11 ? today.getDate() : 0; // Only unlock in December
 
+// Trivia questions for calendar days
 const triviaData = {
   1: { q: "What color is Santa's suit?", a: "red", letter: "L" },
   2: { q: "What month comes after November?", a: "december", letter: "O" },
   12: { q: "How many days are in December?", a: "31", letter: "V" },
 };
 
+// Hidden star trivia
 const starTrivia = [
   { q: "What is the hottest planet?", a: "venus", letter: "E" },
   { q: "What color are stars?", a: "varies", letter: "K" },
@@ -28,7 +28,7 @@ const starTrivia = [
 
 let foundLetters = JSON.parse(localStorage.getItem("foundLetters")) || [];
 
-// Build Calendar
+// ---------- Calendar Setup ----------
 for (let i = 1; i <= 31; i++) {
   const dayDiv = document.createElement("div");
   dayDiv.className = "day";
@@ -42,7 +42,7 @@ for (let i = 1; i <= 31; i++) {
   calendar.appendChild(dayDiv);
 }
 
-// Trivia popup system
+// ---------- Trivia Modal ----------
 function openTrivia(day) {
   const trivia = triviaData[day];
   if (!trivia) return;
@@ -73,7 +73,7 @@ function closeTrivia() {
 
 closeModal.onclick = closeTrivia;
 
-// Stars (hidden trivia)
+// ---------- Hidden Stars ----------
 function spawnStars(num = 8) {
   for (let i = 0; i < num; i++) {
     const star = document.createElement("div");
@@ -108,7 +108,7 @@ function spawnStars(num = 8) {
 }
 spawnStars();
 
-// Cipher logic
+// ---------- Cipher + Letters ----------
 const cipherTextEl = document.getElementById("cipherText");
 const decodedTextEl = document.getElementById("decodedText");
 const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
@@ -150,18 +150,40 @@ resetBtn.onclick = () => {
 
 updateLettersDisplay();
 
-// Snow animation
+// ---------- Snow (soft white dots) ----------
 function startSnow() {
   const snowContainer = document.querySelector(".snow");
+
   setInterval(() => {
     const snowflake = document.createElement("div");
-    snowflake.textContent = "❄️";
+    snowflake.classList.add("snowflake");
     snowflake.style.position = "absolute";
+    snowflake.style.top = "-10px";
     snowflake.style.left = Math.random() * 100 + "%";
-    snowflake.style.fontSize = Math.random() * 15 + 10 + "px";
-    snowflake.style.animation = `fall ${Math.random() * 3 + 2}s linear`;
+    snowflake.style.width = snowflake.style.height = Math.random() * 4 + 2 + "px";
+    snowflake.style.background = "white";
+    snowflake.style.borderRadius = "50%";
+    snowflake.style.opacity = Math.random();
+    snowflake.style.animation = `fall ${Math.random() * 3 + 3}s linear`;
     snowContainer.appendChild(snowflake);
-    setTimeout(() => snowflake.remove(), 5000);
-  }, 200);
+    setTimeout(() => snowflake.remove(), 6000);
+  }, 150);
 }
+
+const style = document.createElement("style");
+style.textContent = `
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+`;
+document.head.appendChild(style);
+
 startSnow();
+
+// ---------- Page Load Fix ----------
+window.addEventListener("DOMContentLoaded", () => {
+  triviaModal.classList.add("hidden");
+});
