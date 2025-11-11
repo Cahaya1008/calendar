@@ -9,9 +9,11 @@ body {
 }
 
 h1 {
+  margin-bottom: 1rem;
+}
+
+p {
   margin-bottom: 2rem;
-  z-index: 10;
-  position: relative;
 }
 
 .calendar {
@@ -49,7 +51,25 @@ h1 {
   background: gold;
 }
 
-/* Modal styling */
+/* Reset button */
+#resetProgress {
+  background: crimson;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.3s;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+#resetProgress:hover {
+  background: darkred;
+}
+
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -76,38 +96,7 @@ h1 {
   cursor: pointer;
 }
 
-#finalMessage {
-  background: #fff;
-  color: #333;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 20px;
-  display: inline-block;
-  z-index: 10;
-  position: relative;
-}
-
-.hidden {
-  display: none;
-}
-#resetProgress {
-  background: crimson;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: background 0.3s;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-#resetProgress:hover {
-  background: darkred;
-}
-
-/* Snow canvas (background layer) */
+/* Snow */
 #snowCanvas {
   position: fixed;
   top: 0;
