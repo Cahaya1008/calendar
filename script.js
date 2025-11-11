@@ -166,3 +166,17 @@ function showConfetti() {
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
 }
+
+// Reset progress
+const resetButton = document.getElementById("resetProgress");
+resetButton.addEventListener("click", () => {
+  if (confirm("Are you sure you want to reset your progress?")) {
+    localStorage.removeItem("foundLetters");
+    localStorage.removeItem("openedDays");
+    foundLetters = [];
+    openedDays = [];
+    secretMessage.textContent = "";
+    finalMessageDiv.classList.add("hidden");
+    alert("Progress reset! Refresh the page to start over 🎄");
+  }
+});
