@@ -5,6 +5,8 @@ const triviaAnswer = document.getElementById("triviaAnswer");
 const submitAnswer = document.getElementById("submitAnswer");
 const triviaFeedback = document.getElementById("triviaFeedback");
 const closeModal = document.getElementById("closeModal");
+triviaModal.classList.add("hidden"); // ensure hidden on load
+
 const lettersFoundDiv = document.getElementById("lettersFound");
 const resetBtn = document.getElementById("resetBtn");
 
