@@ -90,3 +90,49 @@ resetButton.addEventListener("click", () => {
 
 renderCalendar();
 startSnow();
+function startSnow() {
+  const canvas = document.getElementById("snowCanvas");
+  const ctx = canvas.getContext("2d");
+  let flakes = [];
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  function createFlake() {
+    flakes.push({
+      x: Math.random() * canvas.width,
+      y: 0,
+      radius: Math.random() * 4 + 1,
+      speed: Math.random() * 2 + 0.5,
+      drift: Math.random() * 2 - 1,
+    });
+  }
+
+  function drawFlakes() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    flakes.forEach(flake => {
+      ctx.moveTo(flake.x, flake.y);
+      ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+    });
+    ctx.fill();
+    moveFlakes();
+  }
+
+  function moveFlakes() {
+    flakes.forEach(flake => {
+      flake.y += flake.speed;
+      flake.x += flake.drift;
+      if (flake.y > canvas.height) {
+        flake.y = 0;
+        flake.x = Math.random() * canvas.width;
+      }
+    });
+  }
+
+  setInterval(() => {
+    createFlake();
+    drawFlakes();
+  }, 50);
+}
