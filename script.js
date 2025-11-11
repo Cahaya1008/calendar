@@ -1,6 +1,6 @@
 const calendar = document.getElementById("calendar");
 const triviaModal = document.getElementById("triviaModal");
-const closeModal = document.querySelector(".close");
+const closeButtons = document.querySelectorAll(".close");
 const triviaTitle = document.getElementById("triviaTitle");
 const triviaQuestion = document.getElementById("triviaQuestion");
 const answerInput = document.getElementById("answerInput");
@@ -8,12 +8,17 @@ const submitAnswer = document.getElementById("submitAnswer");
 const feedback = document.getElementById("feedback");
 const finalMessageDiv = document.getElementById("finalMessage");
 const secretMessage = document.getElementById("secretMessage");
+const finalDoor = document.getElementById("finalDoor");
+const passwordModal = document.getElementById("passwordModal");
+const passwordInput = document.getElementById("passwordInput");
+const submitPassword = document.getElementById("submitPassword");
+const passwordFeedback = document.getElementById("passwordFeedback");
 
 let foundLetters = JSON.parse(localStorage.getItem("foundLetters")) || [];
 let openedDays = JSON.parse(localStorage.getItem("openedDays")) || [];
 
 const today = new Date();
-const currentDay = today.getMonth() === 11 ? today.getDate() : 31; // unlock all if not December
+const currentDay = today.getMonth() === 11 ? today.getDate() : 31;
 
 function renderCalendar() {
   calendar.innerHTML = "";
@@ -56,10 +61,11 @@ function openDay(day) {
   };
 }
 
-closeModal.onclick = () => (triviaModal.style.display = "none");
+closeButtons.forEach(btn => (btn.onclick = () => btn.parentElement.parentElement.style.display = "none"));
 
 window.onclick = event => {
   if (event.target === triviaModal) triviaModal.style.display = "none";
+  if (event.target === passwordModal) passwordModal.style.display = "none";
 };
 
 function checkCompletion() {
@@ -69,5 +75,25 @@ function checkCompletion() {
   }
 }
 
+// Final door password check
+finalDoor.addEventListener("click", () => {
+  passwordInput.value = "";
+  passwordFeedback.textContent = "";
+  passwordModal.style.display = "block";
+});
+
+submitPassword.addEventListener("click", () => {
+  const input = passwordInput.value.trim().toLowerCase();
+  if (input === finalPassword.toLowerCase()) {
+    passwordFeedback.textContent = "✅ Unlocked!";
+    passwordModal.style.display = "none";
+    showConfetti();
+    alert(secretFinalMessage);
+  } else {
+    passwordFeedback.textContent = "❌ Incorrect password.";
+  }
+});
+
 renderCalendar();
 checkCompletion();
+startSnow();
