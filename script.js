@@ -1,24 +1,17 @@
 const calendar = document.getElementById("calendar");
 const triviaModal = document.getElementById("triviaModal");
-const closeButtons = document.querySelectorAll(".close");
+const closeModal = document.querySelector(".close");
 const triviaTitle = document.getElementById("triviaTitle");
 const triviaQuestion = document.getElementById("triviaQuestion");
 const answerInput = document.getElementById("answerInput");
 const submitAnswer = document.getElementById("submitAnswer");
 const feedback = document.getElementById("feedback");
-const finalMessageDiv = document.getElementById("finalMessage");
-const secretMessage = document.getElementById("secretMessage");
-const finalDoor = document.getElementById("finalDoor");
-const passwordModal = document.getElementById("passwordModal");
-const passwordInput = document.getElementById("passwordInput");
-const submitPassword = document.getElementById("submitPassword");
-const passwordFeedback = document.getElementById("passwordFeedback");
+const resetButton = document.getElementById("resetProgress");
 
 let foundLetters = JSON.parse(localStorage.getItem("foundLetters")) || [];
-let openedDays = JSON.parse(localStorage.getItem("openedDays")) || [];
 
 const today = new Date();
-const currentDay = today.getMonth() === 11 ? today.getDate() : 31;
+const currentDay = today.getMonth() === 11 ? today.getDate() : 31; // unlock all if not December
 
 function renderCalendar() {
   calendar.innerHTML = "";
@@ -40,6 +33,7 @@ function renderCalendar() {
 function openDay(day) {
   const trivia = triviaData.find(t => t.day === day);
   if (!trivia) return alert("No trivia for this day yet!");
+
   triviaTitle.textContent = `Day ${day}`;
   triviaQuestion.textContent = trivia.question;
   feedback.textContent = "";
@@ -54,50 +48,27 @@ function openDay(day) {
       foundLetters = [...new Set(foundLetters)];
       localStorage.setItem("foundLetters", JSON.stringify(foundLetters));
       triviaModal.style.display = "none";
-      checkCompletion();
+      alert(`You found a letter: ${trivia.letter}!`);
     } else {
       feedback.textContent = "❌ Try again!";
     }
   };
 }
 
-closeButtons.forEach(btn => (btn.onclick = () => btn.parentElement.parentElement.style.display = "none"));
+closeModal.onclick = () => (triviaModal.style.display = "none");
+window.onclick = e => { if (e.target === triviaModal) triviaModal.style.display = "none"; };
 
-window.onclick = event => {
-  if (event.target === triviaModal) triviaModal.style.display = "none";
-  if (event.target === passwordModal) passwordModal.style.display = "none";
-};
-
-function checkCompletion() {
-  if (foundLetters.length === triviaData.length) {
-    secretMessage.textContent = foundLetters.join("");
-    finalMessageDiv.classList.remove("hidden");
-  }
-}
-
-// Final door password check
-finalDoor.addEventListener("click", () => {
-  passwordInput.value = "";
-  passwordFeedback.textContent = "";
-  passwordModal.style.display = "block";
-});
-
-submitPassword.addEventListener("click", () => {
-  const input = passwordInput.value.trim().toLowerCase();
-  if (input === finalPassword.toLowerCase()) {
-    passwordFeedback.textContent = "✅ Unlocked!";
-    passwordModal.style.display = "none";
-    showConfetti();
-    alert(secretFinalMessage);
-  } else {
-    passwordFeedback.textContent = "❌ Incorrect password.";
+// Reset progress
+resetButton.addEventListener("click", () => {
+  if (confirm("Are you sure you want to reset your progress?")) {
+    localStorage.removeItem("foundLetters");
+    foundLetters = [];
+    alert("Progress reset! 🎄");
   }
 });
 
 renderCalendar();
-checkCompletion();
 startSnow();
-// Snowfall animation
 function startSnow() {
   const canvas = document.getElementById("snowCanvas");
   const ctx = canvas.getContext("2d");
@@ -106,7 +77,7 @@ function startSnow() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  function createFlakes() {
+  function createFlake() {
     flakes.push({
       x: Math.random() * canvas.width,
       y: 0,
@@ -140,43 +111,7 @@ function startSnow() {
   }
 
   setInterval(() => {
-    createFlakes();
+    createFlake();
     drawFlakes();
   }, 50);
 }
-
-function showConfetti() {
-  const duration = 2 * 1000;
-  const end = Date.now() + duration;
-
-  (function frame() {
-    confetti({
-      particleCount: 5,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 },
-    });
-    confetti({
-      particleCount: 5,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 },
-    });
-
-    if (Date.now() < end) requestAnimationFrame(frame);
-  })();
-}
-
-// Reset progress
-const resetButton = document.getElementById("resetProgress");
-resetButton.addEventListener("click", () => {
-  if (confirm("Are you sure you want to reset your progress?")) {
-    localStorage.removeItem("foundLetters");
-    localStorage.removeItem("openedDays");
-    foundLetters = [];
-    openedDays = [];
-    secretMessage.textContent = "";
-    finalMessageDiv.classList.add("hidden");
-    alert("Progress reset! Refresh the page to start over 🎄");
-  }
-});
