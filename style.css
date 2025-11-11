@@ -64,9 +64,19 @@ p {
   font-weight: bold;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
+#resetProgress:hover { background: darkred; }
 
-#resetProgress:hover {
-  background: darkred;
+/* Progress display */
+#progress {
+  margin-top: 40px;
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 10px;
+}
+#lettersFound {
+  font-size: 1.5em;
+  letter-spacing: 4px;
+  margin-top: 10px;
 }
 
 /* Modal */
@@ -80,7 +90,6 @@ p {
   height: 100%;
   background-color: rgba(0,0,0,0.8);
 }
-
 .modal-content {
   background-color: #fff;
   color: #333;
@@ -89,12 +98,20 @@ p {
   border-radius: 12px;
   width: 300px;
 }
-
 .close {
   float: right;
   font-size: 24px;
   cursor: pointer;
 }
+
+/* Hidden messages */
+.hidden-message {
+  position: absolute;
+  font-size: 0.9em;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.hidden-message:hover { opacity: 1; }
 
 /* Snow */
 #snowCanvas {
