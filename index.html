@@ -1,107 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Advent Scavenger — December 1–31</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advent Calendar Hunt</title>
   <link rel="stylesheet" href="style.css" />
-  <meta name="description" content="Interactive advent calendar with scavenger-hunt letters and trivia." />
 </head>
 <body>
-  <header class="site-header">
-    <h1>Advent Scavenger</h1>
-    <p class="subtitle">Open one window per day (Dec 1–31). Find hidden letters across the site & answer trivia!</p>
-    <nav class="top-nav">
-      <a href="#calendar">Calendar</a>
-      <a href="#about">About</a>
-      <a href="#gallery">Gallery</a>
-      <a href="#extras">Extras</a>
-    </nav>
-    <div class="progress">
-      <span id="days-opened">0</span>/<span>31</span> days · Letters: <span id="letters-found">0</span>/<span id="letters-total">0</span>
-    </div>
-  </header>
+  <h1>🎄 Advent Calendar Hunt 🎁</h1>
+  <div id="calendar" class="calendar"></div>
 
-  <main>
-    <section id="calendar" class="calendar-section">
-      <h2>December Calendar</h2>
-      <div id="calendar-grid" class="grid"></div>
-      <button id="reset-btn" class="ghost">Reset progress</button>
-    </section>
-
-    <!-- About section — hide or reveal letters here -->
-    <section id="about" class="content-section">
-      <h2>About</h2>
-      <p>Welcome to the Advent Scavenger site — hide and seek your holiday letters!</p>
-      <div class="card">
-        <h3>Did you know?</h3>
-        <p class="letter-target" data-letter-id="L1" tabindex="0">A curious fact hides here. (click me)</p>
-      </div>
-    </section>
-
-    <!-- Gallery (another place to hide letters) -->
-    <section id="gallery" class="content-section">
-      <h2>Gallery</h2>
-      <div class="gallery-grid">
-        <div class="image-card" tabindex="0">
-          <img src="https://picsum.photos/seed/1/400/250" alt="Gallery image 1">
-          <p class="caption">A peaceful scene</p>
-        </div>
-        <div class="image-card" tabindex="0">
-          <img src="https://picsum.photos/seed/2/400/250" alt="Gallery image 2">
-          <p class="caption letter-target" data-letter-id="L2">Something's tucked into this caption...</p>
-        </div>
-        <div class="image-card" tabindex="0">
-          <img src="https://picsum.photos/seed/3/400/250" alt="Gallery image 3">
-          <p class="caption">Stars and snow</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Extras: more interactive places -->
-    <section id="extras" class="content-section">
-      <h2>Extras & Mini Games</h2>
-      <p>Try clicking around — some text blocks are clickable and reveal letters.</p>
-
-      <div class="extras-grid">
-        <button class="extra-button letter-target" data-letter-id="L3">Click here for a surprise</button>
-        <div class="mini-panel">
-          <h4>Mini riddle</h4>
-          <p class="letter-target" data-letter-id="L4" tabindex="0">Riddle panel — maybe a letter is hidden.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Modal for day content (the advent window) -->
-  <div id="modal" class="modal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button id="modal-close" class="modal-close" aria-label="Close">✕</button>
-      <h3 id="modal-title">Day</h3>
-      <div id="modal-body"></div>
-      <div class="modal-actions">
-        <button id="modal-find-letter" class="primary hidden">Check for letter</button>
-      </div>
+  <div id="triviaModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="triviaTitle"></h2>
+      <p id="triviaQuestion"></p>
+      <input type="text" id="answerInput" placeholder="Type your answer..." />
+      <button id="submitAnswer">Submit</button>
+      <p id="feedback"></p>
     </div>
   </div>
 
-  <!-- Modal for trivia when letter is clicked -->
-  <div id="trivia-modal" class="modal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="trivia-title">
-      <button id="trivia-close" class="modal-close" aria-label="Close">✕</button>
-      <h3 id="trivia-title">Trivia</h3>
-      <div id="trivia-body"></div>
-      <div class="modal-actions">
-        <button id="trivia-close-btn" class="primary">Close</button>
-      </div>
-    </div>
+  <div id="finalMessage" class="hidden">
+    <h2>🎉 Congratulations! 🎉</h2>
+    <p>You found all the letters! The secret message is:</p>
+    <h3 id="secretMessage"></h3>
   </div>
-
-  <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
-
-  <footer class="site-footer">
-    <small>Made with ❤️ — edit <code>data.js</code> to change letters & trivia.</small>
-  </footer>
 
   <script src="data.js"></script>
   <script src="script.js"></script>
