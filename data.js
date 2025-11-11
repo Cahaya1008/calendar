@@ -1,4 +1,3 @@
-// Trivia data — easy to customize
 const triviaData = [
   { day: 1, question: "What color are holly berries?", answer: "red", letter: "C" },
   { day: 2, question: "How many reindeer does Santa have?", answer: "9", letter: "H" },
