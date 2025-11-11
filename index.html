@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advent Calendar Hunt 🎄</title>
+  <title>🎄 Advent Calendar Hunt 🎁</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <canvas id="snowCanvas"></canvas>
-  
-  <h1>🎄 Advent Calendar Hunt 🎁</h1>
+
+  <h1>🎄 Advent Calendar Scavenger Hunt 🎁</h1>
+  <p>Each day unlocks a new box! Explore, answer trivia, and collect letters!</p>
+
   <div id="calendar" class="calendar"></div>
+
   <button id="resetProgress">🔁 Reset Progress</button>
 
+  <!-- Trivia modal -->
   <div id="triviaModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -22,23 +25,6 @@
       <input type="text" id="answerInput" placeholder="Type your answer..." />
       <button id="submitAnswer">Submit</button>
       <p id="feedback"></p>
-    </div>
-  </div>
-
-  <div id="finalMessage" class="hidden">
-    <h2>🎉 Congratulations! 🎉</h2>
-    <p>You found all the letters! The secret message is:</p>
-    <h3 id="secretMessage"></h3>
-    <button id="finalDoor">🔒 Open the Final Door</button>
-  </div>
-
-  <div id="passwordModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Enter the final password:</h2>
-      <input type="password" id="passwordInput" placeholder="Your secret password..." />
-      <button id="submitPassword">Unlock</button>
-      <p id="passwordFeedback"></p>
     </div>
   </div>
 
