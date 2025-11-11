@@ -1,98 +1,114 @@
 const calendar = document.getElementById("calendar");
 const triviaModal = document.getElementById("triviaModal");
-const closeModal = document.querySelector(".close");
-const triviaTitle = document.getElementById("triviaTitle");
 const triviaQuestion = document.getElementById("triviaQuestion");
-const answerInput = document.getElementById("answerInput");
+const triviaAnswer = document.getElementById("triviaAnswer");
 const submitAnswer = document.getElementById("submitAnswer");
-const feedback = document.getElementById("feedback");
-const resetButton = document.getElementById("resetProgress");
+const triviaFeedback = document.getElementById("triviaFeedback");
+const closeModal = document.getElementById("closeModal");
 const lettersFoundDiv = document.getElementById("lettersFound");
+const resetBtn = document.getElementById("resetBtn");
+
+const previewMode = window.location.search.includes("preview=true");
+let today = new Date();
+let currentDay = today.getMonth() === 11 ? today.getDate() : 0; // December only
+
+const triviaData = {
+  1: { q: "What color is Santa's suit?", a: "red", letter: "L" },
+  2: { q: "What month comes after November?", a: "december", letter: "O" },
+  12: { q: "How many days are in December?", a: "31", letter: "V" },
+};
+
+const starTrivia = [
+  { q: "What is the hottest planet?", a: "venus", letter: "E" },
+  { q: "What color are stars?", a: "varies", letter: "K" },
+  { q: "What galaxy do we live in?", a: "milky way", letter: "N" },
+];
 
 let foundLetters = JSON.parse(localStorage.getItem("foundLetters")) || [];
 
-// check if ?preview=true in URL
-const urlParams = new URLSearchParams(window.location.search);
-const previewMode = urlParams.get("preview") === "true";
+// Build Calendar
+for (let i = 1; i <= 31; i++) {
+  const dayDiv = document.createElement("div");
+  dayDiv.className = "day";
+  dayDiv.textContent = i;
 
-function getUnlockedDay() {
-  if (previewMode) return 31;
-  const now = new Date();
-  // Only December unlocks days normally; others stay locked
-  return (now.getMonth() === 11) ? now.getDate() : 0;
-}
-const currentDay = getUnlockedDay();
-
-function renderCalendar() {
-  calendar.innerHTML = "";
-  for (let i = 1; i <= 31; i++) {
-    const dayBox = document.createElement("div");
-    dayBox.classList.add("day");
-    dayBox.textContent = i;
-
-    if (i > currentDay) {
-      dayBox.classList.add("locked");
-    } else {
-      dayBox.addEventListener("click", () => openDay(i));
-    }
-
-    calendar.appendChild(dayBox);
+  if (!previewMode && i > currentDay) {
+    dayDiv.classList.add("locked");
+  } else {
+    dayDiv.addEventListener("click", () => openTrivia(i));
   }
-  updateLettersDisplay();
+  calendar.appendChild(dayDiv);
 }
 
-function openDay(day) {
-  const trivia = triviaData.find(t => t.day === day);
-  if (!trivia) return alert("No trivia for this day yet!");
-
-  triviaTitle.textContent = `Day ${day}`;
-  triviaQuestion.textContent = trivia.question;
-  feedback.textContent = "";
-  answerInput.value = "";
-  triviaModal.style.display = "block";
+// Trivia popup system
+function openTrivia(day) {
+  const trivia = triviaData[day];
+  if (!trivia) return;
+  triviaModal.classList.remove("hidden");
+  triviaQuestion.textContent = trivia.q;
+  triviaAnswer.value = "";
+  triviaFeedback.textContent = "";
 
   submitAnswer.onclick = () => {
-    const userAnswer = answerInput.value.trim().toLowerCase();
-    if (userAnswer === trivia.answer.toLowerCase()) {
-      feedback.textContent = "✅ Correct!";
-      foundLetters.push(trivia.letter);
-      foundLetters = [...new Set(foundLetters)];
-      localStorage.setItem("foundLetters", JSON.stringify(foundLetters));
-      updateLettersDisplay();
-      triviaModal.style.display = "none";
-      alert(`You found a letter: ${trivia.letter}!`);
+    const answer = triviaAnswer.value.trim().toLowerCase();
+    if (answer === trivia.a.toLowerCase()) {
+      triviaFeedback.textContent = "✅ Correct!";
+      if (!foundLetters.includes(trivia.letter)) {
+        foundLetters.push(trivia.letter);
+        saveProgress();
+        updateLettersDisplay();
+      }
+      setTimeout(() => closeTrivia(), 1000);
     } else {
-      feedback.textContent = "❌ Try again!";
+      triviaFeedback.textContent = "❌ Try again!";
     }
   };
 }
 
-function updateLettersDisplay() {
-  if (foundLetters.length === 0) {
-    lettersFoundDiv.textContent = "(none yet)";
-  } else {
-    lettersFoundDiv.textContent = foundLetters.join(" ");
-  }
+function closeTrivia() {
+  triviaModal.classList.add("hidden");
 }
 
-closeModal.onclick = () => (triviaModal.style.display = "none");
-window.onclick = e => { if (e.target === triviaModal) triviaModal.style.display = "none"; };
+closeModal.onclick = closeTrivia;
 
-// Reset progress
-resetButton.addEventListener("click", () => {
-  if (confirm("Are you sure you want to reset your progress?")) {
-    localStorage.removeItem("foundLetters");
-    foundLetters = [];
-    updateLettersDisplay();
-    alert("Progress reset! 🎄");
+// Stars (hidden trivia)
+function spawnStars(num = 8) {
+  for (let i = 0; i < num; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.style.top = Math.random() * 80 + "%";
+    star.style.left = Math.random() * 95 + "%";
+    document.body.appendChild(star);
+
+    const trivia = starTrivia[i % starTrivia.length];
+    star.onclick = () => {
+      triviaModal.classList.remove("hidden");
+      triviaQuestion.textContent = trivia.q;
+      triviaAnswer.value = "";
+      triviaFeedback.textContent = "";
+
+      submitAnswer.onclick = () => {
+        const answer = triviaAnswer.value.trim().toLowerCase();
+        if (answer === trivia.a.toLowerCase()) {
+          triviaFeedback.textContent = "✅ Correct!";
+          if (!foundLetters.includes(trivia.letter)) {
+            foundLetters.push(trivia.letter);
+            saveProgress();
+            updateLettersDisplay();
+          }
+          setTimeout(() => closeTrivia(), 1000);
+        } else {
+          triviaFeedback.textContent = "❌ Try again!";
+        }
+      };
+    };
   }
-});
+}
+spawnStars();
 
-renderCalendar();
-// ---- Cipher Message Section ---- //
+// Cipher logic
 const cipherTextEl = document.getElementById("cipherText");
 const decodedTextEl = document.getElementById("decodedText");
-
 const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const cipher = finalMessage
@@ -103,10 +119,9 @@ const cipher = finalMessage
 
 function updateCipherDisplay() {
   cipherTextEl.textContent = cipher;
-  const uniqueLettersInMessage = [...new Set(finalMessage.replace(/[^A-Z]/g, ""))];
-  const collectedAll = uniqueLettersInMessage.every(l => foundLetters.includes(l));
-  
-  if (collectedAll || previewMode) {
+  const uniqueLetters = [...new Set(finalMessage.replace(/[^A-Z]/g, ""))];
+  const allFound = uniqueLetters.every(l => foundLetters.includes(l));
+  if (allFound || previewMode) {
     decodedTextEl.textContent = `"${finalMessage}"`;
     decodedTextEl.classList.remove("hidden");
   } else {
@@ -115,58 +130,36 @@ function updateCipherDisplay() {
 }
 
 function updateLettersDisplay() {
-  if (foundLetters.length === 0) {
-    lettersFoundDiv.textContent = "(none yet)";
-  } else {
-    lettersFoundDiv.textContent = foundLetters.join(" ");
-  }
+  lettersFoundDiv.textContent = foundLetters.length ? foundLetters.join(" ") : "(none yet)";
   updateCipherDisplay();
 }
 
-startSnow();
-function startSnow() {
-  const canvas = document.getElementById("snowCanvas");
-  const ctx = canvas.getContext("2d");
-  let flakes = [];
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  function createFlake() {
-    flakes.push({
-      x: Math.random() * canvas.width,
-      y: 0,
-      radius: Math.random() * 4 + 1,
-      speed: Math.random() * 2 + 0.5,
-      drift: Math.random() * 2 - 1,
-    });
-  }
-
-  function drawFlakes() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    flakes.forEach(flake => {
-      ctx.moveTo(flake.x, flake.y);
-      ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
-    });
-    ctx.fill();
-    moveFlakes();
-  }
-
-  function moveFlakes() {
-    flakes.forEach(flake => {
-      flake.y += flake.speed;
-      flake.x += flake.drift;
-      if (flake.y > canvas.height) {
-        flake.y = 0;
-        flake.x = Math.random() * canvas.width;
-      }
-    });
-  }
-
-  setInterval(() => {
-    createFlake();
-    drawFlakes();
-  }, 50);
+function saveProgress() {
+  localStorage.setItem("foundLetters", JSON.stringify(foundLetters));
 }
+
+resetBtn.onclick = () => {
+  if (confirm("Reset your progress?")) {
+    localStorage.removeItem("foundLetters");
+    foundLetters = [];
+    updateLettersDisplay();
+  }
+};
+
+updateLettersDisplay();
+
+// Snow animation
+function startSnow() {
+  const snowContainer = document.querySelector(".snow");
+  setInterval(() => {
+    const snowflake = document.createElement("div");
+    snowflake.textContent = "❄️";
+    snowflake.style.position = "absolute";
+    snowflake.style.left = Math.random() * 100 + "%";
+    snowflake.style.fontSize = Math.random() * 15 + 10 + "px";
+    snowflake.style.animation = `fall ${Math.random() * 3 + 2}s linear`;
+    snowContainer.appendChild(snowflake);
+    setTimeout(() => snowflake.remove(), 5000);
+  }, 200);
+}
+startSnow();
