@@ -36,7 +36,7 @@ resetBtn.addEventListener('click', resetProgress);
 // ===== CALENDAR =====
 function createCalendar() {
   const now = new Date();
-  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // only Dec
+  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // December only
   for (let i = 1; i <= totalDays; i++) {
     const box = document.createElement('div');
     box.className = 'day-box';
@@ -62,7 +62,6 @@ function openDay(day, box) {
   if (!openedDays.includes(day)) openedDays.push(day);
   saveProgress();
   box.classList.add('opened');
-  alert(`Day ${day} opened! 🎁`);
   window.location.href = `day${day}/index.html`;
 }
 
@@ -74,7 +73,6 @@ function updateCollectedLetters() {
 }
 
 // ===== SECRET MESSAGE =====
-cipherTextEl.textContent = "🔐 Secret Message — click to decode!";
 cipherTextEl.addEventListener('click', () => {
   window.location.href = 'final.html';
 });
@@ -108,10 +106,7 @@ function createSnowflake() {
 
   const fallDuration = 8 + Math.random() * 6;
   flake.animate(
-    [
-      { transform: `translateY(0)` },
-      { transform: `translateY(${window.innerHeight + 10}px)` }
-    ],
+    [{ transform: `translateY(0)` }, { transform: `translateY(${window.innerHeight + 10}px)` }],
     { duration: fallDuration * 1000, iterations: 1 }
   );
   setTimeout(() => flake.remove(), fallDuration * 1000);
@@ -144,6 +139,7 @@ document.body.appendChild(starContainer);
 
 for (let i = 0; i < numStars; i++) {
   const star = document.createElement('div');
+  star.classList.add('star');
   Object.assign(star.style, {
     position: 'absolute',
     width: '2px',
@@ -152,18 +148,15 @@ for (let i = 0; i < numStars; i++) {
     background: 'white',
     opacity: Math.random() * 0.8 + 0.2,
     left: Math.random() * 100 + 'vw',
-    top: Math.random() * 100 + 'vh',
-    transition: 'transform 0.3s ease, opacity 0.3s ease'
+    top: Math.random() * 100 + 'vh'
   });
 
-  // Twinkle effect
+  // Twinkle
   setInterval(() => {
     star.style.opacity = Math.random() * 0.8 + 0.2;
   }, 1500 + Math.random() * 2000);
 
-  // Only allow clicks for two chosen stars
   if (clickableIndices.includes(i)) {
-    star.classList.add('clickable-star');
     star.style.cursor = 'pointer';
     star.addEventListener('click', () => triggerStarTrivia(star));
   } else {
@@ -220,36 +213,12 @@ function showStarTrivia() {
       collectedLetters.push('L');
       saveProgress();
       updateCollectedLetters();
-      sparkleEffect();
       setTimeout(() => trivia.remove(), 2000);
     } else {
       feedback.textContent = '❌ Try again!';
       feedback.style.color = 'red';
     }
   });
-}
-
-// ===== SPARKLE ANIMATION =====
-function sparkleEffect() {
-  const sparkle = document.createElement('div');
-  sparkle.textContent = '✨';
-  Object.assign(sparkle.style, {
-    position: 'fixed',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%) scale(1)',
-    fontSize: '2rem',
-    opacity: '1',
-    transition: 'all 1s ease',
-    zIndex: '2000'
-  });
-  document.body.appendChild(sparkle);
-
-  setTimeout(() => {
-    sparkle.style.transform = 'translate(-50%, -50%) scale(2)';
-    sparkle.style.opacity = '0';
-  }, 100);
-  setTimeout(() => sparkle.remove(), 1000);
 }
 
 // ===== INIT =====
