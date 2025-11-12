@@ -1,208 +1,223 @@
-// MAIN PAGE SCRIPT
-// Handles: calendar navigation to day pages, stars with bonus trivia, star-modal answering,
-// localStorage for letters, cipher reveal, reset, and white-dot falling snow.
+// === Advent Calendar Script ===
 
-// storage key (shared across pages)
-const STORAGE_KEY = 'advent_foundLetters_v1';
+// ===== CONFIG =====
+const totalDays = 31;
+const progressKey = 'advent_opened_days';
+const urlParams = new URLSearchParams(window.location.search);
+const isPreview = urlParams.has('preview');
 
-// elements
-const calendarEl = document.getElementById('calendar');
-const lettersFoundEl = document.getElementById('lettersFound');
-const resetBtn = document.getElementById('resetBtn');
+// ===== ELEMENTS =====
+const calendar = document.getElementById('calendar');
+const collectedEl = document.getElementById('collectedLetters');
+const resetBtn = document.getElementById('resetProgress');
 const cipherTextEl = document.getElementById('cipherText');
 const decodedTextEl = document.getElementById('decodedText');
 
-const triviaModal = document.getElementById('triviaModal');
-const triviaQuestion = document.getElementById('triviaQuestion');
-const triviaAnswer = document.getElementById('triviaAnswer');
-const submitAnswer = document.getElementById('submitAnswer');
-const triviaFeedback = document.getElementById('triviaFeedback');
-const closeModal = document.getElementById('closeModal');
+// ===== PROGRESS HANDLING =====
+let openedDays = JSON.parse(localStorage.getItem(progressKey)) || [];
+let collectedLetters = JSON.parse(localStorage.getItem('advent_letters')) || [];
 
-const starsContainer = document.getElementById('starsContainer');
+function saveProgress() {
+  localStorage.setItem(progressKey, JSON.stringify(openedDays));
+  localStorage.setItem('advent_letters', JSON.stringify(collectedLetters));
+}
 
-const previewMode = new URLSearchParams(window.location.search).get('preview') === 'true';
+function resetProgress() {
+  if (confirm('Reset all progress?')) {
+    localStorage.removeItem(progressKey);
+    localStorage.removeItem('advent_letters');
+    location.reload();
+  }
+}
+resetBtn.addEventListener('click', resetProgress);
 
-// final message and cipher
-const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const cipher = finalMessage
-  .toUpperCase()
-  .split('')
-  .map(ch => (ALPHABET.includes(ch) ? ALPHABET.indexOf(ch)+1 : ch))
-  .join(' ');
-
-// letters collected (array of single-letter strings)
-let foundLetters = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-// -- Build calendar: clicking a day navigates to that day's page
-(function buildCalendar(){
+// ===== CREATE CALENDAR =====
+function createCalendar() {
   const now = new Date();
-  const unlockedDay = previewMode ? 31 : (now.getMonth() === 11 ? now.getDate() : 0);
+  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // Dec only
+  for (let i = 1; i <= totalDays; i++) {
+    const box = document.createElement('div');
+    box.className = 'day-box';
+    box.textContent = i;
 
-  for(let d=1; d<=31; d++){
-    const dayBox = document.createElement('div');
-    dayBox.className = 'day';
-    dayBox.textContent = d;
+    const canOpen = isPreview || (i <= currentDay);
+    if (!canOpen) box.classList.add('locked');
+    if (openedDays.includes(i)) box.classList.add('opened');
 
-    if(d > unlockedDay){
-      dayBox.classList.add('locked');
-      dayBox.setAttribute('aria-disabled','true');
-    } else {
-      // go to day page
-      dayBox.addEventListener('click', () => {
-        // navigate to folder dayN/index.html
-        window.location.href = `day${d}/index.html`;
-      });
-    }
-    calendarEl.appendChild(dayBox);
-  }
-})();
-
-// -- Stars (multiple) and star-based trivia
-// Define star trivia items (you can extend these)
-const starTrivia = [
-  { id: 'star1', question: "What is the brightest star in the night sky?", answer: "sirius", letter: "E" },
-  { id: 'star2', question: "Which galaxy do we call home?", answer: "milky way", letter: "K" },
-  { id: 'star3', question: "What color is the Sun to our eyes at noon?", answer: "white", letter: "N" },
-  { id: 'star4', question: "What star is known as the North Star?", answer: "polaris", letter: "W" },
-  // add more hidden star-trivia objects as desired
-];
-
-function spawnStars(count = 10){
-  // place many subtle white stars; a subset are interactive (we'll use our starTrivia list)
-  for(let i=0;i<count;i++){
-    const star = document.createElement('div');
-    star.className = 'star';
-    star.style.top = (5 + Math.random()*80) + '%';
-    star.style.left = (3 + Math.random()*90) + '%';
-    // choose whether this star should be interactive: pick from starTrivia if available
-    const idx = i % starTrivia.length;
-    const trivia = starTrivia[idx];
-    // small chance to be one of the special trivia stars (we'll make most clickable)
-    star.dataset.triviaIndex = idx;
-    star.title = "A twinkling star (click!)";
-    // make it clickable
-    star.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      openStarTrivia(trivia);
-    });
-    // starsContainer exists and covers viewport; pointer-events allowed on stars
-    starsContainer.appendChild(star);
-  }
-}
-spawnStars(12);
-
-// open star trivia modal with provided trivia object
-function openStarTrivia(trivia) {
-  if(!trivia) return;
-  triviaModal.classList.remove('hidden');
-  triviaModal.setAttribute('aria-hidden','false');
-  triviaQuestion.textContent = trivia.question;
-  triviaAnswer.value = '';
-  triviaFeedback.textContent = '';
-  // submit handler
-  submitAnswer.onclick = () => {
-    const user = (triviaAnswer.value || '').trim().toLowerCase();
-    if(user === (trivia.answer || '').toLowerCase()){
-      triviaFeedback.textContent = "✅ Correct!";
-      // add letter if not already present
-      if(trivia.letter && !foundLetters.includes(trivia.letter)){
-        foundLetters.push(trivia.letter);
-        persistProgress();
-        updateLettersDisplay();
+    box.addEventListener('click', () => {
+      if (!canOpen) {
+        alert("You can't open this yet!");
+        return;
       }
-      setTimeout(closeTriviaModal, 700);
-    } else {
-      triviaFeedback.textContent = "❌ Try again!";
-    }
-  };
-}
-
-closeModal.addEventListener('click', closeTriviaModal);
-function closeTriviaModal(){
-  triviaModal.classList.add('hidden');
-  triviaModal.setAttribute('aria-hidden','true');
-  triviaQuestion.textContent = '';
-  triviaAnswer.value = '';
-  triviaFeedback.textContent = '';
-  submitAnswer.onclick = null;
-}
-
-// -- letters display and cipher
-function updateLettersDisplay(){
-  lettersFoundEl.textContent = foundLetters.length ? foundLetters.join(' ') : '(none yet)';
-  updateCipherDisplay();
-}
-
-function updateCipherDisplay(){
-  cipherTextEl.textContent = cipher;
-  // check if user has every unique letter in final message
-  const uniqueLetters = [...new Set(finalMessage.replace(/[^A-Z]/g,''))];
-  const hasAll = uniqueLetters.every(l => foundLetters.includes(l));
-  if(hasAll || previewMode){
-    decodedTextEl.textContent = `"${finalMessage}"`;
-    decodedTextEl.classList.remove('hidden');
-  } else {
-    decodedTextEl.classList.add('hidden');
-  }
-}
-// Navigate to final decoding page
-cipherTextEl.addEventListener('click', () => {
-  if (decodedTextEl.classList.contains('hidden')) {
-    window.location.href = 'final.html';
-  }
-});
-
-function persistProgress(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(foundLetters));
-}
-
-// reset button
-resetBtn.addEventListener('click', () => {
-  if(!confirm("Reset all collected letters and restart?")) return;
-  foundLetters = [];
-  persistProgress();
-  updateLettersDisplay();
-});
-
-// initialize displays on load
-updateLettersDisplay();
-
-// -- Soft white-dot falling snow (simple implementation)
-(function startSnow(){
-  const container = document.querySelector('.snow');
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-
-  // create a pool of flakes and animate them; simple interval-based
-  setInterval(() => {
-    const flake = document.createElement('div');
-    flake.className = 'snowflake';
-    // random start left along top
-    flake.style.left = Math.random() * 100 + '%';
-    flake.style.top = '-8px';
-    const size = (Math.random() * 4) + 2;
-    flake.style.width = size + 'px';
-    flake.style.height = size + 'px';
-    flake.style.opacity = Math.random() * 0.9 + 0.2;
-    // random duration and drift
-    const duration = (Math.random() * 4) + 4; // 4-8s
-    const drift = (Math.random() * 80) - 40; // -40 to +40 px drift
-    flake.style.transition = `transform ${duration}s linear, opacity ${duration}s linear`;
-    container.appendChild(flake);
-    // trigger movement on next tick
-    requestAnimationFrame(() => {
-      flake.style.transform = `translate(${drift}px, ${window.innerHeight + 40}px)`;
-      flake.style.opacity = 0;
+      openDay(i, box);
     });
-    // cleanup
-    setTimeout(() => flake.remove(), (duration*1000)+200);
-  }, 160);
-})();
 
-// ensure modal hidden at start (prevent accidental open)
-window.addEventListener('DOMContentLoaded', () => {
-  triviaModal.classList.add('hidden');
-  triviaModal.setAttribute('aria-hidden','true');
-});
+    calendar.appendChild(box);
+  }
+}
+
+function openDay(day, box) {
+  if (!openedDays.includes(day)) openedDays.push(day);
+  saveProgress();
+
+  box.classList.add('opened');
+  alert(`Day ${day} opened! 🎁`);
+
+  // Redirect to a daily page (like day1/index.html)
+  window.location.href = `day${day}/index.html`;
+}
+
+// ===== UPDATE LETTERS =====
+function updateCollectedLetters() {
+  collectedEl.innerHTML = collectedLetters.length
+    ? `<strong>Collected Letters:</strong> ${collectedLetters.join(' ')}`
+    : `<em>No letters collected yet.</em>`;
+}
+
+// ===== SECRET MESSAGE SECTION =====
+function updateCipherDisplay() {
+  cipherTextEl.textContent = "🔐 Secret Message — click to decode!";
+  cipherTextEl.addEventListener('click', () => {
+    window.location.href = 'final.html';
+  });
+}
+updateCipherDisplay();
+
+// ===== STARS + SNOW EFFECTS =====
+
+// 🌨️ SNOW (white dots falling)
+const snowContainer = document.createElement('div');
+snowContainer.style.position = 'fixed';
+snowContainer.style.top = 0;
+snowContainer.style.left = 0;
+snowContainer.style.width = '100%';
+snowContainer.style.height = '100%';
+snowContainer.style.pointerEvents = 'none';
+snowContainer.style.zIndex = '1';
+document.body.appendChild(snowContainer);
+
+function createSnowflake() {
+  const flake = document.createElement('div');
+  flake.classList.add('snowflake');
+  flake.style.position = 'absolute';
+  flake.style.top = '-5px';
+  flake.style.left = Math.random() * 100 + 'vw';
+  flake.style.width = flake.style.height = Math.random() * 3 + 2 + 'px';
+  flake.style.background = 'white';
+  flake.style.borderRadius = '50%';
+  flake.style.opacity = Math.random();
+  snowContainer.appendChild(flake);
+
+  const fallDuration = 8 + Math.random() * 6;
+  flake.animate(
+    [
+      { transform: `translateY(0)` },
+      { transform: `translateY(${window.innerHeight + 10}px)` }
+    ],
+    { duration: fallDuration * 1000, iterations: 1 }
+  );
+
+  setTimeout(() => flake.remove(), fallDuration * 1000);
+}
+setInterval(createSnowflake, 150);
+
+// 🌟 STARFIELD (only a few clickable)
+const numStars = 80;
+const numClickable = 2;
+const starContainer = document.createElement('div');
+starContainer.style.position = 'fixed';
+starContainer.style.top = 0;
+starContainer.style.left = 0;
+starContainer.style.width = '100%';
+starContainer.style.height = '100%';
+starContainer.style.pointerEvents = 'none';
+starContainer.style.zIndex = '2';
+document.body.appendChild(starContainer);
+
+const clickableIndices = new Set();
+while (clickableIndices.size < numClickable) {
+  clickableIndices.add(Math.floor(Math.random() * numStars));
+}
+
+for (let i = 0; i < numStars; i++) {
+  const star = document.createElement('div');
+  star.classList.add('star');
+  star.style.position = 'absolute';
+  star.style.width = '2px';
+  star.style.height = '2px';
+  star.style.borderRadius = '50%';
+  star.style.background = 'white';
+  star.style.opacity = Math.random() * 0.8 + 0.2;
+  star.style.left = Math.random() * 100 + 'vw';
+  star.style.top = Math.random() * 100 + 'vh';
+  star.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+  starContainer.appendChild(star);
+
+  // twinkle effect
+  setInterval(() => {
+    star.style.opacity = Math.random() * 0.8 + 0.2;
+  }, 1500 + Math.random() * 2000);
+
+  // only a few stars are interactive
+  if (clickableIndices.has(i)) {
+    star.style.pointerEvents = 'auto';
+    star.style.cursor = 'pointer';
+    star.dataset.trivia = i;
+    star.addEventListener('click', () => triggerStarTrivia(star));
+  }
+}
+
+// === STAR TRIVIA ===
+function triggerStarTrivia(star) {
+  star.style.pointerEvents = 'none';
+  star.style.background = 'gold';
+  star.style.boxShadow = '0 0 10px 3px gold';
+  showStarTrivia();
+}
+
+function showStarTrivia() {
+  const trivia = document.createElement('div');
+  trivia.classList.add('star-trivia');
+  trivia.style.position = 'fixed';
+  trivia.style.top = '50%';
+  trivia.style.left = '50%';
+  trivia.style.transform = 'translate(-50%, -50%)';
+  trivia.style.background = 'rgba(255,255,255,0.1)';
+  trivia.style.border = '1px solid rgba(255,255,255,0.3)';
+  trivia.style.borderRadius = '10px';
+  trivia.style.padding = '20px';
+  trivia.style.color = 'white';
+  trivia.style.zIndex = '1000';
+  trivia.style.maxWidth = '300px';
+  trivia.innerHTML = `
+    <h3>🌟 The stars hold secrets...</h3>
+    <p>Answer this to reveal your hidden letter:</p>
+    <p><em>What is 2 × 6?</em></p>
+    <input type="text" id="starAnswer" placeholder="Your answer" style="margin-top:10px;padding:5px;">
+    <button id="starSubmit" style="margin-top:10px;">Submit</button>
+    <p id="starFeedback"></p>
+  `;
+  document.body.appendChild(trivia);
+
+  const input = trivia.querySelector('#starAnswer');
+  const btn = trivia.querySelector('#starSubmit');
+  const feedback = trivia.querySelector('#starFeedback');
+
+  btn.addEventListener('click', () => {
+    if (input.value.trim() === '12') {
+      feedback.textContent = '✅ Correct! You found a secret letter: L';
+      feedback.style.color = 'lightgreen';
+      collectedLetters.push('L');
+      saveProgress();
+      updateCollectedLetters();
+      setTimeout(() => trivia.remove(), 2000);
+    } else {
+      feedback.textContent = '❌ Try again!';
+      feedback.style.color = 'red';
+    }
+  });
+}
+
+// ===== INITIALIZE =====
+createCalendar();
+updateCollectedLetters();
