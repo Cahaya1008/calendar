@@ -3,6 +3,8 @@
 // ===== CONFIG =====
 const totalDays = 31;
 const progressKey = 'advent_opened_days';
+const letterKey = 'advent_letters';
+const starKey = 'advent_clickable_stars';
 const urlParams = new URLSearchParams(window.location.search);
 const isPreview = urlParams.has('preview');
 
@@ -11,30 +13,30 @@ const calendar = document.getElementById('calendar');
 const collectedEl = document.getElementById('collectedLetters');
 const resetBtn = document.getElementById('resetProgress');
 const cipherTextEl = document.getElementById('cipherText');
-const decodedTextEl = document.getElementById('decodedText');
 
-// ===== PROGRESS HANDLING =====
+// ===== PROGRESS =====
 let openedDays = JSON.parse(localStorage.getItem(progressKey)) || [];
-let collectedLetters = JSON.parse(localStorage.getItem('advent_letters')) || [];
+let collectedLetters = JSON.parse(localStorage.getItem(letterKey)) || [];
 
 function saveProgress() {
   localStorage.setItem(progressKey, JSON.stringify(openedDays));
-  localStorage.setItem('advent_letters', JSON.stringify(collectedLetters));
+  localStorage.setItem(letterKey, JSON.stringify(collectedLetters));
 }
 
 function resetProgress() {
   if (confirm('Reset all progress?')) {
     localStorage.removeItem(progressKey);
-    localStorage.removeItem('advent_letters');
+    localStorage.removeItem(letterKey);
+    localStorage.removeItem(starKey);
     location.reload();
   }
 }
 resetBtn.addEventListener('click', resetProgress);
 
-// ===== CREATE CALENDAR =====
+// ===== CALENDAR =====
 function createCalendar() {
   const now = new Date();
-  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // Dec only
+  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // only Dec
   for (let i = 1; i <= totalDays; i++) {
     const box = document.createElement('div');
     box.className = 'day-box';
@@ -59,53 +61,49 @@ function createCalendar() {
 function openDay(day, box) {
   if (!openedDays.includes(day)) openedDays.push(day);
   saveProgress();
-
   box.classList.add('opened');
   alert(`Day ${day} opened! 🎁`);
-
-  // Redirect to a daily page (like day1/index.html)
   window.location.href = `day${day}/index.html`;
 }
 
-// ===== UPDATE LETTERS =====
+// ===== LETTERS =====
 function updateCollectedLetters() {
   collectedEl.innerHTML = collectedLetters.length
     ? `<strong>Collected Letters:</strong> ${collectedLetters.join(' ')}`
     : `<em>No letters collected yet.</em>`;
 }
 
-// ===== SECRET MESSAGE SECTION =====
-function updateCipherDisplay() {
-  cipherTextEl.textContent = "🔐 Secret Message — click to decode!";
-  cipherTextEl.addEventListener('click', () => {
-    window.location.href = 'final.html';
-  });
-}
-updateCipherDisplay();
+// ===== SECRET MESSAGE =====
+cipherTextEl.textContent = "🔐 Secret Message — click to decode!";
+cipherTextEl.addEventListener('click', () => {
+  window.location.href = 'final.html';
+});
 
-// ===== STARS + SNOW EFFECTS =====
-
-// 🌨️ SNOW (white dots falling)
+// ===== SNOW EFFECT =====
 const snowContainer = document.createElement('div');
-snowContainer.style.position = 'fixed';
-snowContainer.style.top = 0;
-snowContainer.style.left = 0;
-snowContainer.style.width = '100%';
-snowContainer.style.height = '100%';
-snowContainer.style.pointerEvents = 'none';
-snowContainer.style.zIndex = '1';
+Object.assign(snowContainer.style, {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  pointerEvents: 'none',
+  zIndex: '1'
+});
 document.body.appendChild(snowContainer);
 
 function createSnowflake() {
   const flake = document.createElement('div');
-  flake.classList.add('snowflake');
-  flake.style.position = 'absolute';
-  flake.style.top = '-5px';
-  flake.style.left = Math.random() * 100 + 'vw';
-  flake.style.width = flake.style.height = Math.random() * 3 + 2 + 'px';
-  flake.style.background = 'white';
-  flake.style.borderRadius = '50%';
-  flake.style.opacity = Math.random();
+  Object.assign(flake.style, {
+    position: 'absolute',
+    top: '-5px',
+    left: Math.random() * 100 + 'vw',
+    width: Math.random() * 3 + 2 + 'px',
+    height: Math.random() * 3 + 2 + 'px',
+    background: 'white',
+    borderRadius: '50%',
+    opacity: Math.random()
+  });
   snowContainer.appendChild(flake);
 
   const fallDuration = 8 + Math.random() * 6;
@@ -116,58 +114,66 @@ function createSnowflake() {
     ],
     { duration: fallDuration * 1000, iterations: 1 }
   );
-
   setTimeout(() => flake.remove(), fallDuration * 1000);
 }
 setInterval(createSnowflake, 150);
 
-// 🌟 STARFIELD (only a few clickable)
+// ===== STARS =====
 const numStars = 80;
-const numClickable = 2;
-const starContainer = document.createElement('div');
-starContainer.style.position = 'fixed';
-starContainer.style.top = 0;
-starContainer.style.left = 0;
-starContainer.style.width = '100%';
-starContainer.style.height = '100%';
-starContainer.style.pointerEvents = 'none';
-starContainer.style.zIndex = '2';
-document.body.appendChild(starContainer);
+let clickableIndices = JSON.parse(localStorage.getItem(starKey));
 
-const clickableIndices = new Set();
-while (clickableIndices.size < numClickable) {
-  clickableIndices.add(Math.floor(Math.random() * numStars));
+if (!clickableIndices) {
+  clickableIndices = [];
+  while (clickableIndices.length < 2) {
+    const n = Math.floor(Math.random() * numStars);
+    if (!clickableIndices.includes(n)) clickableIndices.push(n);
+  }
+  localStorage.setItem(starKey, JSON.stringify(clickableIndices));
 }
+
+const starContainer = document.createElement('div');
+Object.assign(starContainer.style, {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  zIndex: '2'
+});
+document.body.appendChild(starContainer);
 
 for (let i = 0; i < numStars; i++) {
   const star = document.createElement('div');
-  star.classList.add('star');
-  star.style.position = 'absolute';
-  star.style.width = '2px';
-  star.style.height = '2px';
-  star.style.borderRadius = '50%';
-  star.style.background = 'white';
-  star.style.opacity = Math.random() * 0.8 + 0.2;
-  star.style.left = Math.random() * 100 + 'vw';
-  star.style.top = Math.random() * 100 + 'vh';
-  star.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-  starContainer.appendChild(star);
+  Object.assign(star.style, {
+    position: 'absolute',
+    width: '2px',
+    height: '2px',
+    borderRadius: '50%',
+    background: 'white',
+    opacity: Math.random() * 0.8 + 0.2,
+    left: Math.random() * 100 + 'vw',
+    top: Math.random() * 100 + 'vh',
+    transition: 'transform 0.3s ease, opacity 0.3s ease'
+  });
 
-  // twinkle effect
+  // Twinkle effect
   setInterval(() => {
     star.style.opacity = Math.random() * 0.8 + 0.2;
   }, 1500 + Math.random() * 2000);
 
-  // only a few stars are interactive
-  if (clickableIndices.has(i)) {
-    star.style.pointerEvents = 'auto';
+  // Only allow clicks for two chosen stars
+  if (clickableIndices.includes(i)) {
+    star.classList.add('clickable-star');
     star.style.cursor = 'pointer';
-    star.dataset.trivia = i;
     star.addEventListener('click', () => triggerStarTrivia(star));
+  } else {
+    star.style.pointerEvents = 'none';
   }
+
+  starContainer.appendChild(star);
 }
 
-// === STAR TRIVIA ===
+// ===== STAR TRIVIA =====
 function triggerStarTrivia(star) {
   star.style.pointerEvents = 'none';
   star.style.background = 'gold';
@@ -177,18 +183,22 @@ function triggerStarTrivia(star) {
 
 function showStarTrivia() {
   const trivia = document.createElement('div');
-  trivia.classList.add('star-trivia');
-  trivia.style.position = 'fixed';
-  trivia.style.top = '50%';
-  trivia.style.left = '50%';
-  trivia.style.transform = 'translate(-50%, -50%)';
-  trivia.style.background = 'rgba(255,255,255,0.1)';
-  trivia.style.border = '1px solid rgba(255,255,255,0.3)';
-  trivia.style.borderRadius = '10px';
-  trivia.style.padding = '20px';
-  trivia.style.color = 'white';
-  trivia.style.zIndex = '1000';
-  trivia.style.maxWidth = '300px';
+  Object.assign(trivia.style, {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.3)',
+    borderRadius: '10px',
+    padding: '20px',
+    color: 'white',
+    zIndex: '1000',
+    maxWidth: '300px',
+    textAlign: 'center',
+    backdropFilter: 'blur(8px)'
+  });
+
   trivia.innerHTML = `
     <h3>🌟 The stars hold secrets...</h3>
     <p>Answer this to reveal your hidden letter:</p>
@@ -210,6 +220,7 @@ function showStarTrivia() {
       collectedLetters.push('L');
       saveProgress();
       updateCollectedLetters();
+      sparkleEffect();
       setTimeout(() => trivia.remove(), 2000);
     } else {
       feedback.textContent = '❌ Try again!';
@@ -218,6 +229,29 @@ function showStarTrivia() {
   });
 }
 
-// ===== INITIALIZE =====
+// ===== SPARKLE ANIMATION =====
+function sparkleEffect() {
+  const sparkle = document.createElement('div');
+  sparkle.textContent = '✨';
+  Object.assign(sparkle.style, {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%) scale(1)',
+    fontSize: '2rem',
+    opacity: '1',
+    transition: 'all 1s ease',
+    zIndex: '2000'
+  });
+  document.body.appendChild(sparkle);
+
+  setTimeout(() => {
+    sparkle.style.transform = 'translate(-50%, -50%) scale(2)';
+    sparkle.style.opacity = '0';
+  }, 100);
+  setTimeout(() => sparkle.remove(), 1000);
+}
+
+// ===== INIT =====
 createCalendar();
 updateCollectedLetters();
