@@ -1,226 +1,116 @@
-// === Advent Calendar Script ===
+// === Advent Calendar Logic ===
 
-// ===== CONFIG =====
+// Number of days in December
 const totalDays = 31;
-const progressKey = 'advent_opened_days';
-const letterKey = 'advent_letters';
-const starKey = 'advent_clickable_stars';
-const urlParams = new URLSearchParams(window.location.search);
-const isPreview = urlParams.has('preview');
 
-// ===== ELEMENTS =====
-const calendar = document.getElementById('calendar');
-const collectedEl = document.getElementById('collectedLetters');
-const resetBtn = document.getElementById('resetProgress');
-const cipherTextEl = document.getElementById('cipherText');
+// Get today's date (month/day)
+const today = new Date();
+const isPreview = window.location.search.includes("preview=true");
+const currentMonth = today.getMonth(); // 11 = December
+const currentDay = today.getDate();
 
-// ===== PROGRESS =====
-let openedDays = JSON.parse(localStorage.getItem(progressKey)) || [];
-let collectedLetters = JSON.parse(localStorage.getItem(letterKey)) || [];
+// Calendar container
+const calendarContainer = document.getElementById("calendar");
 
-function saveProgress() {
-  localStorage.setItem(progressKey, JSON.stringify(openedDays));
-  localStorage.setItem(letterKey, JSON.stringify(collectedLetters));
-}
+// Create day buttons
+for (let i = 1; i <= totalDays; i++) {
+  const dayButton = document.createElement("button");
+  dayButton.classList.add("day-button");
+  dayButton.textContent = i;
 
-function resetProgress() {
-  if (confirm('Reset all progress?')) {
-    localStorage.removeItem(progressKey);
-    localStorage.removeItem(letterKey);
-    localStorage.removeItem(starKey);
-    location.reload();
+  // Disable future days unless preview mode
+  if (!isPreview && (currentMonth !== 11 || i > currentDay)) {
+    dayButton.disabled = true;
+    dayButton.classList.add("locked");
   }
-}
-resetBtn.addEventListener('click', resetProgress);
 
-// ===== CALENDAR =====
-function createCalendar() {
-  const now = new Date();
-  const currentDay = now.getMonth() === 11 ? now.getDate() : 0; // December only
-  for (let i = 1; i <= totalDays; i++) {
-    const box = document.createElement('div');
-    box.className = 'day-box';
-    box.textContent = i;
-
-    const canOpen = isPreview || (i <= currentDay);
-    if (!canOpen) box.classList.add('locked');
-    if (openedDays.includes(i)) box.classList.add('opened');
-
-    box.addEventListener('click', () => {
-      if (!canOpen) {
-        alert("You can't open this yet!");
-        return;
-      }
-      openDay(i, box);
-    });
-
-    calendar.appendChild(box);
-  }
+  dayButton.addEventListener("click", () => openDay(i));
+  calendarContainer.appendChild(dayButton);
 }
 
-function openDay(day, box) {
-  if (!openedDays.includes(day)) openedDays.push(day);
-  saveProgress();
-  box.classList.add('opened');
-  window.location.href = `day${day}/index.html`;
+// Handle opening a day
+function openDay(day) {
+  alert(`🎄 You opened Day ${day}! Something special awaits you...`);
+  // Later: redirect to that day’s unique page (day1.html, day2.html, etc.)
+  // window.location.href = `days/day${day}.html`;
 }
 
-// ===== LETTERS =====
-function updateCollectedLetters() {
-  collectedEl.innerHTML = collectedLetters.length
-    ? `<strong>Collected Letters:</strong> ${collectedLetters.join(' ')}`
-    : `<em>No letters collected yet.</em>`;
-}
-
-// ===== SECRET MESSAGE =====
-cipherTextEl.addEventListener('click', () => {
-  window.location.href = 'final.html';
-});
-
-// ===== SNOW EFFECT =====
-const snowContainer = document.createElement('div');
-Object.assign(snowContainer.style, {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  pointerEvents: 'none',
-  zIndex: '1'
-});
-document.body.appendChild(snowContainer);
+// === Falling Snow Effect (white dots) ===
+const snowContainer = document.getElementById("snow-container");
 
 function createSnowflake() {
-  const flake = document.createElement('div');
-  Object.assign(flake.style, {
-    position: 'absolute',
-    top: '-5px',
-    left: Math.random() * 100 + 'vw',
-    width: Math.random() * 3 + 2 + 'px',
-    height: Math.random() * 3 + 2 + 'px',
-    background: 'white',
-    borderRadius: '50%',
-    opacity: Math.random()
-  });
-  snowContainer.appendChild(flake);
+  const snowflake = document.createElement("div");
+  snowflake.classList.add("snowflake");
+  snowflake.style.left = Math.random() * 100 + "vw";
+  snowflake.style.animationDuration = 3 + Math.random() * 5 + "s";
+  snowflake.style.opacity = Math.random();
+  snowflake.style.width = snowflake.style.height = 3 + Math.random() * 3 + "px";
+  snowContainer.appendChild(snowflake);
 
-  const fallDuration = 8 + Math.random() * 6;
-  flake.animate(
-    [{ transform: `translateY(0)` }, { transform: `translateY(${window.innerHeight + 10}px)` }],
-    { duration: fallDuration * 1000, iterations: 1 }
-  );
-  setTimeout(() => flake.remove(), fallDuration * 1000);
+  setTimeout(() => {
+    snowflake.remove();
+  }, 8000);
 }
 setInterval(createSnowflake, 150);
 
-// ===== STARS =====
-const numStars = 80;
-let clickableIndices = JSON.parse(localStorage.getItem(starKey));
+// === Collect Letters & Progress ===
+const collectedContainer = document.getElementById("collected");
+let collectedLetters = JSON.parse(localStorage.getItem("collectedLetters")) || [];
 
-if (!clickableIndices) {
-  clickableIndices = [];
-  while (clickableIndices.length < 2) {
-    const n = Math.floor(Math.random() * numStars);
-    if (!clickableIndices.includes(n)) clickableIndices.push(n);
+function updateCollected() {
+  collectedContainer.textContent =
+    "Collected Letters: " + collectedLetters.join(" ");
+}
+updateCollected();
+
+function collectLetter(letter) {
+  if (!collectedLetters.includes(letter)) {
+    collectedLetters.push(letter);
+    localStorage.setItem("collectedLetters", JSON.stringify(collectedLetters));
+    updateCollected();
   }
-  localStorage.setItem(starKey, JSON.stringify(clickableIndices));
 }
 
-const starContainer = document.createElement('div');
-Object.assign(starContainer.style, {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  zIndex: '2'
+// Reset Progress Button
+document.getElementById("resetProgress").addEventListener("click", () => {
+  if (confirm("Are you sure you want to reset your progress?")) {
+    localStorage.removeItem("collectedLetters");
+    collectedLetters = [];
+    updateCollected();
+  }
 });
-document.body.appendChild(starContainer);
 
+// === Twinkling Stars (only 2 clickable ones) ===
+const starsContainer = document.getElementById("stars-container");
+const numStars = 30; // keep it small for visual clarity
+const numClickable = 2;
+
+// Randomly pick 2 stars to be clickable
+const clickableStars = [];
+while (clickableStars.length < numClickable) {
+  const rand = Math.floor(Math.random() * numStars);
+  if (!clickableStars.includes(rand)) clickableStars.push(rand);
+}
+
+// Create stars
 for (let i = 0; i < numStars; i++) {
-  const star = document.createElement('div');
-  star.classList.add('star');
-  Object.assign(star.style, {
-    position: 'absolute',
-    width: '2px',
-    height: '2px',
-    borderRadius: '50%',
-    background: 'white',
-    opacity: Math.random() * 0.8 + 0.2,
-    left: Math.random() * 100 + 'vw',
-    top: Math.random() * 100 + 'vh'
-  });
+  const star = document.createElement("div");
+  star.classList.add("star");
+  star.style.left = Math.random() * 100 + "vw";
+  star.style.top = Math.random() * 40 + "vh";
+  star.style.animationDelay = Math.random() * 2 + "s";
+  starsContainer.appendChild(star);
 
-  // Twinkle
-  setInterval(() => {
-    star.style.opacity = Math.random() * 0.8 + 0.2;
-  }, 1500 + Math.random() * 2000);
-
-  if (clickableIndices.includes(i)) {
-    star.style.cursor = 'pointer';
-    star.addEventListener('click', () => triggerStarTrivia(star));
-  } else {
-    star.style.pointerEvents = 'none';
+  if (clickableStars.includes(i)) {
+    star.classList.add("clickable");
+    star.addEventListener("click", () => {
+      const trivia = prompt("✨ The stars hold secrets... Solve this: What is 5 × 6?");
+      if (trivia && trivia.trim() === "30") {
+        alert("🌟 Correct! You’ve discovered a secret letter: L");
+        collectLetter("L");
+      } else {
+        alert("❌ That’s not quite right.");
+      }
+    });
   }
-
-  starContainer.appendChild(star);
 }
-
-// ===== STAR TRIVIA =====
-function triggerStarTrivia(star) {
-  star.style.pointerEvents = 'none';
-  star.style.background = 'gold';
-  star.style.boxShadow = '0 0 10px 3px gold';
-  showStarTrivia();
-}
-
-function showStarTrivia() {
-  const trivia = document.createElement('div');
-  Object.assign(trivia.style, {
-    position: 'fixed',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    borderRadius: '10px',
-    padding: '20px',
-    color: 'white',
-    zIndex: '1000',
-    maxWidth: '300px',
-    textAlign: 'center',
-    backdropFilter: 'blur(8px)'
-  });
-
-  trivia.innerHTML = `
-    <h3>🌟 The stars hold secrets...</h3>
-    <p>Answer this to reveal your hidden letter:</p>
-    <p><em>What is 2 × 6?</em></p>
-    <input type="text" id="starAnswer" placeholder="Your answer" style="margin-top:10px;padding:5px;">
-    <button id="starSubmit" style="margin-top:10px;">Submit</button>
-    <p id="starFeedback"></p>
-  `;
-  document.body.appendChild(trivia);
-
-  const input = trivia.querySelector('#starAnswer');
-  const btn = trivia.querySelector('#starSubmit');
-  const feedback = trivia.querySelector('#starFeedback');
-
-  btn.addEventListener('click', () => {
-    if (input.value.trim() === '12') {
-      feedback.textContent = '✅ Correct! You found a secret letter: L';
-      feedback.style.color = 'lightgreen';
-      collectedLetters.push('L');
-      saveProgress();
-      updateCollectedLetters();
-      setTimeout(() => trivia.remove(), 2000);
-    } else {
-      feedback.textContent = '❌ Try again!';
-      feedback.style.color = 'red';
-    }
-  });
-}
-
-// ===== INIT =====
-createCalendar();
-updateCollectedLetters();
