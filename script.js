@@ -1,189 +1,202 @@
-const calendar = document.getElementById("calendar");
-const triviaModal = document.getElementById("triviaModal");
-const triviaQuestion = document.getElementById("triviaQuestion");
-const triviaAnswer = document.getElementById("triviaAnswer");
-const submitAnswer = document.getElementById("submitAnswer");
-const triviaFeedback = document.getElementById("triviaFeedback");
-const closeModal = document.getElementById("closeModal");
-const lettersFoundDiv = document.getElementById("lettersFound");
-const resetBtn = document.getElementById("resetBtn");
+// MAIN PAGE SCRIPT
+// Handles: calendar navigation to day pages, stars with bonus trivia, star-modal answering,
+// localStorage for letters, cipher reveal, reset, and white-dot falling snow.
 
-const previewMode = window.location.search.includes("preview=true");
-let today = new Date();
-let currentDay = today.getMonth() === 11 ? today.getDate() : 0; // Only unlock in December
+// storage key (shared across pages)
+const STORAGE_KEY = 'advent_foundLetters_v1';
 
-// Trivia questions for calendar days
-const triviaData = {
-  1: { q: "What color is Santa's suit?", a: "red", letter: "L" },
-  2: { q: "What month comes after November?", a: "december", letter: "O" },
-  12: { q: "How many days are in December?", a: "31", letter: "V" },
-};
+// elements
+const calendarEl = document.getElementById('calendar');
+const lettersFoundEl = document.getElementById('lettersFound');
+const resetBtn = document.getElementById('resetBtn');
+const cipherTextEl = document.getElementById('cipherText');
+const decodedTextEl = document.getElementById('decodedText');
 
-// Hidden star trivia
+const triviaModal = document.getElementById('triviaModal');
+const triviaQuestion = document.getElementById('triviaQuestion');
+const triviaAnswer = document.getElementById('triviaAnswer');
+const submitAnswer = document.getElementById('submitAnswer');
+const triviaFeedback = document.getElementById('triviaFeedback');
+const closeModal = document.getElementById('closeModal');
+
+const starsContainer = document.getElementById('starsContainer');
+
+const previewMode = new URLSearchParams(window.location.search).get('preview') === 'true';
+
+// final message and cipher
+const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const cipher = finalMessage
+  .toUpperCase()
+  .split('')
+  .map(ch => (ALPHABET.includes(ch) ? ALPHABET.indexOf(ch)+1 : ch))
+  .join(' ');
+
+// letters collected (array of single-letter strings)
+let foundLetters = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+// -- Build calendar: clicking a day navigates to that day's page
+(function buildCalendar(){
+  const now = new Date();
+  const unlockedDay = previewMode ? 31 : (now.getMonth() === 11 ? now.getDate() : 0);
+
+  for(let d=1; d<=31; d++){
+    const dayBox = document.createElement('div');
+    dayBox.className = 'day';
+    dayBox.textContent = d;
+
+    if(d > unlockedDay){
+      dayBox.classList.add('locked');
+      dayBox.setAttribute('aria-disabled','true');
+    } else {
+      // go to day page
+      dayBox.addEventListener('click', () => {
+        // navigate to folder dayN/index.html
+        window.location.href = `day${d}/index.html`;
+      });
+    }
+    calendarEl.appendChild(dayBox);
+  }
+})();
+
+// -- Stars (multiple) and star-based trivia
+// Define star trivia items (you can extend these)
 const starTrivia = [
-  { q: "What is the hottest planet?", a: "venus", letter: "E" },
-  { q: "What color are stars?", a: "varies", letter: "K" },
-  { q: "What galaxy do we live in?", a: "milky way", letter: "N" },
+  { id: 'star1', question: "What is the brightest star in the night sky?", answer: "sirius", letter: "E" },
+  { id: 'star2', question: "Which galaxy do we call home?", answer: "milky way", letter: "K" },
+  { id: 'star3', question: "What color is the Sun to our eyes at noon?", answer: "white", letter: "N" },
+  { id: 'star4', question: "What star is known as the North Star?", answer: "polaris", letter: "W" },
+  // add more hidden star-trivia objects as desired
 ];
 
-let foundLetters = JSON.parse(localStorage.getItem("foundLetters")) || [];
-
-// ---------- Calendar Setup ----------
-for (let i = 1; i <= 31; i++) {
-  const dayDiv = document.createElement("div");
-  dayDiv.className = "day";
-  dayDiv.textContent = i;
-
-  if (!previewMode && i > currentDay) {
-    dayDiv.classList.add("locked");
-  } else {
-    dayDiv.addEventListener("click", () => openTrivia(i));
+function spawnStars(count = 10){
+  // place many subtle white stars; a subset are interactive (we'll use our starTrivia list)
+  for(let i=0;i<count;i++){
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.top = (5 + Math.random()*80) + '%';
+    star.style.left = (3 + Math.random()*90) + '%';
+    // choose whether this star should be interactive: pick from starTrivia if available
+    const idx = i % starTrivia.length;
+    const trivia = starTrivia[idx];
+    // small chance to be one of the special trivia stars (we'll make most clickable)
+    star.dataset.triviaIndex = idx;
+    star.title = "A twinkling star (click!)";
+    // make it clickable
+    star.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openStarTrivia(trivia);
+    });
+    // starsContainer exists and covers viewport; pointer-events allowed on stars
+    starsContainer.appendChild(star);
   }
-  calendar.appendChild(dayDiv);
 }
+spawnStars(12);
 
-// ---------- Trivia Modal ----------
-function openTrivia(day) {
-  const trivia = triviaData[day];
-  if (!trivia) return;
-  triviaModal.classList.remove("hidden");
-  triviaQuestion.textContent = trivia.q;
-  triviaAnswer.value = "";
-  triviaFeedback.textContent = "";
-
+// open star trivia modal with provided trivia object
+function openStarTrivia(trivia) {
+  if(!trivia) return;
+  triviaModal.classList.remove('hidden');
+  triviaModal.setAttribute('aria-hidden','false');
+  triviaQuestion.textContent = trivia.question;
+  triviaAnswer.value = '';
+  triviaFeedback.textContent = '';
+  // submit handler
   submitAnswer.onclick = () => {
-    const answer = triviaAnswer.value.trim().toLowerCase();
-    if (answer === trivia.a.toLowerCase()) {
+    const user = (triviaAnswer.value || '').trim().toLowerCase();
+    if(user === (trivia.answer || '').toLowerCase()){
       triviaFeedback.textContent = "✅ Correct!";
-      if (!foundLetters.includes(trivia.letter)) {
+      // add letter if not already present
+      if(trivia.letter && !foundLetters.includes(trivia.letter)){
         foundLetters.push(trivia.letter);
-        saveProgress();
+        persistProgress();
         updateLettersDisplay();
       }
-      setTimeout(() => closeTrivia(), 1000);
+      setTimeout(closeTriviaModal, 700);
     } else {
       triviaFeedback.textContent = "❌ Try again!";
     }
   };
 }
 
-function closeTrivia() {
-  triviaModal.classList.add("hidden");
+closeModal.addEventListener('click', closeTriviaModal);
+function closeTriviaModal(){
+  triviaModal.classList.add('hidden');
+  triviaModal.setAttribute('aria-hidden','true');
+  triviaQuestion.textContent = '';
+  triviaAnswer.value = '';
+  triviaFeedback.textContent = '';
+  submitAnswer.onclick = null;
 }
 
-closeModal.onclick = closeTrivia;
-
-// ---------- Hidden Stars ----------
-function spawnStars(num = 8) {
-  for (let i = 0; i < num; i++) {
-    const star = document.createElement("div");
-    star.className = "star";
-    star.style.top = Math.random() * 80 + "%";
-    star.style.left = Math.random() * 95 + "%";
-    document.body.appendChild(star);
-
-    const trivia = starTrivia[i % starTrivia.length];
-    star.onclick = () => {
-      triviaModal.classList.remove("hidden");
-      triviaQuestion.textContent = trivia.q;
-      triviaAnswer.value = "";
-      triviaFeedback.textContent = "";
-
-      submitAnswer.onclick = () => {
-        const answer = triviaAnswer.value.trim().toLowerCase();
-        if (answer === trivia.a.toLowerCase()) {
-          triviaFeedback.textContent = "✅ Correct!";
-          if (!foundLetters.includes(trivia.letter)) {
-            foundLetters.push(trivia.letter);
-            saveProgress();
-            updateLettersDisplay();
-          }
-          setTimeout(() => closeTrivia(), 1000);
-        } else {
-          triviaFeedback.textContent = "❌ Try again!";
-        }
-      };
-    };
-  }
-}
-spawnStars();
-
-// ---------- Cipher + Letters ----------
-const cipherTextEl = document.getElementById("cipherText");
-const decodedTextEl = document.getElementById("decodedText");
-const finalMessage = "LOVE KNOWS NOT ITS DEPTH TILL THE HOUR OF SEPARATION.";
-const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const cipher = finalMessage
-  .toUpperCase()
-  .split("")
-  .map(ch => (alphabet.includes(ch) ? alphabet.indexOf(ch) + 1 : ch))
-  .join(" ");
-
-function updateCipherDisplay() {
-  cipherTextEl.textContent = cipher;
-  const uniqueLetters = [...new Set(finalMessage.replace(/[^A-Z]/g, ""))];
-  const allFound = uniqueLetters.every(l => foundLetters.includes(l));
-  if (allFound || previewMode) {
-    decodedTextEl.textContent = `"${finalMessage}"`;
-    decodedTextEl.classList.remove("hidden");
-  } else {
-    decodedTextEl.classList.add("hidden");
-  }
-}
-
-function updateLettersDisplay() {
-  lettersFoundDiv.textContent = foundLetters.length ? foundLetters.join(" ") : "(none yet)";
+// -- letters display and cipher
+function updateLettersDisplay(){
+  lettersFoundEl.textContent = foundLetters.length ? foundLetters.join(' ') : '(none yet)';
   updateCipherDisplay();
 }
 
-function saveProgress() {
-  localStorage.setItem("foundLetters", JSON.stringify(foundLetters));
+function updateCipherDisplay(){
+  cipherTextEl.textContent = cipher;
+  // check if user has every unique letter in final message
+  const uniqueLetters = [...new Set(finalMessage.replace(/[^A-Z]/g,''))];
+  const hasAll = uniqueLetters.every(l => foundLetters.includes(l));
+  if(hasAll || previewMode){
+    decodedTextEl.textContent = `"${finalMessage}"`;
+    decodedTextEl.classList.remove('hidden');
+  } else {
+    decodedTextEl.classList.add('hidden');
+  }
 }
 
-resetBtn.onclick = () => {
-  if (confirm("Reset your progress?")) {
-    localStorage.removeItem("foundLetters");
-    foundLetters = [];
-    updateLettersDisplay();
-  }
-};
+function persistProgress(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(foundLetters));
+}
 
+// reset button
+resetBtn.addEventListener('click', () => {
+  if(!confirm("Reset all collected letters and restart?")) return;
+  foundLetters = [];
+  persistProgress();
+  updateLettersDisplay();
+});
+
+// initialize displays on load
 updateLettersDisplay();
 
-// ---------- Snow (soft white dots) ----------
-function startSnow() {
-  const snowContainer = document.querySelector(".snow");
+// -- Soft white-dot falling snow (simple implementation)
+(function startSnow(){
+  const container = document.querySelector('.snow');
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
+  // create a pool of flakes and animate them; simple interval-based
   setInterval(() => {
-    const snowflake = document.createElement("div");
-    snowflake.classList.add("snowflake");
-    snowflake.style.position = "absolute";
-    snowflake.style.top = "-10px";
-    snowflake.style.left = Math.random() * 100 + "%";
-    snowflake.style.width = snowflake.style.height = Math.random() * 4 + 2 + "px";
-    snowflake.style.background = "white";
-    snowflake.style.borderRadius = "50%";
-    snowflake.style.opacity = Math.random();
-    snowflake.style.animation = `fall ${Math.random() * 3 + 3}s linear`;
-    snowContainer.appendChild(snowflake);
-    setTimeout(() => snowflake.remove(), 6000);
-  }, 150);
-}
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    // random start left along top
+    flake.style.left = Math.random() * 100 + '%';
+    flake.style.top = '-8px';
+    const size = (Math.random() * 4) + 2;
+    flake.style.width = size + 'px';
+    flake.style.height = size + 'px';
+    flake.style.opacity = Math.random() * 0.9 + 0.2;
+    // random duration and drift
+    const duration = (Math.random() * 4) + 4; // 4-8s
+    const drift = (Math.random() * 80) - 40; // -40 to +40 px drift
+    flake.style.transition = `transform ${duration}s linear, opacity ${duration}s linear`;
+    container.appendChild(flake);
+    // trigger movement on next tick
+    requestAnimationFrame(() => {
+      flake.style.transform = `translate(${drift}px, ${window.innerHeight + 40}px)`;
+      flake.style.opacity = 0;
+    });
+    // cleanup
+    setTimeout(() => flake.remove(), (duration*1000)+200);
+  }, 160);
+})();
 
-const style = document.createElement("style");
-style.textContent = `
-@keyframes fall {
-  to {
-    transform: translateY(100vh);
-    opacity: 0;
-  }
-}
-`;
-document.head.appendChild(style);
-
-startSnow();
-
-// ---------- Page Load Fix ----------
-window.addEventListener("DOMContentLoaded", () => {
-  triviaModal.classList.add("hidden");
+// ensure modal hidden at start (prevent accidental open)
+window.addEventListener('DOMContentLoaded', () => {
+  triviaModal.classList.add('hidden');
+  triviaModal.setAttribute('aria-hidden','true');
 });
