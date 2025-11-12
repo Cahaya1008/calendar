@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advent Calendar Mystery</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Advent Calendar Scavenger</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- subtle white-dot snow layer -->
   <div class="snow"></div>
-  <h1>🎄 Advent Calendar Mystery 🎁</h1>
 
-  <div id="calendar"></div>
+  <!-- container for clickable sparkle stars -->
+  <div id="starsContainer" aria-hidden="true"></div>
 
-  <div id="hints">
-    <p><em>Hint:</em> Look closer on Dec 12…</p>
-    <p><em>Hint:</em> Sometimes, numbers hide letters.</p>
-  </div>
+  <header class="site-header">
+    <h1>🎄 Advent Calendar Scavenger Hunt</h1>
+    <p>Open today's door, explore each day's page, find hidden letters, and decode the final message.</p>
+  </header>
 
-  <div id="progress">
-    <h3>Collected Letters</h3>
-    <p id="lettersFound">(none yet)</p>
-  </div>
+  <main>
+    <section id="calendarWrap">
+      <div id="calendar" class="calendar" aria-label="Advent calendar"></div>
+    </section>
 
-  <div id="cipherSection">
-    <h3>Secret Message</h3>
-    <p id="cipherText"></p>
-    <p id="decodedText" class="hidden"></p>
-  </div>
+    <section id="hints" class="hints">
+      <p class="hint">🌟 Psst — the stars hold secrets.</p>
+      <p class="hint">🔎 Look closer on Dec 12.</p>
+      <p class="hint">🔢 Sometimes, numbers hide letters.</p>
+    </section>
 
-  <button id="resetBtn">Reset Progress</button>
+    <section id="progress" class="progress-panel">
+      <h3>Your Collected Letters</h3>
+      <div id="lettersFound" class="letters">(none yet)</div>
+    </section>
 
-  <!-- Trivia Popup -->
-  <div id="triviaModal" class="modal hidden">
+    <section id="cipherSection" class="cipher-panel">
+      <h3>Secret Message (cipher)</h3>
+      <p id="cipherText" class="cipher-text"></p>
+      <p id="decodedText" class="decoded hidden"></p>
+    </section>
+
+    <div class="controls">
+      <button id="resetBtn" class="btn-reset">🔁 Reset Progress</button>
+    </div>
+  </main>
+
+  <!-- Star/bonus trivia modal (used for clicking stars) -->
+  <div id="triviaModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-content">
-      <span id="closeModal">&times;</span>
-      <h2 id="triviaQuestion"></h2>
-      <input type="text" id="triviaAnswer" placeholder="Type your answer...">
-      <button id="submitAnswer">Submit</button>
-      <p id="triviaFeedback"></p>
+      <button id="closeModal" class="modal-close" aria-label="Close">✕</button>
+      <h2 id="triviaTitle">Secret</h2>
+      <p id="triviaQuestion"></p>
+      <input id="triviaAnswer" type="text" placeholder="Type your answer..." aria-label="Answer input" />
+      <div class="modal-actions">
+        <button id="submitAnswer" class="btn-primary">Submit</button>
+      </div>
+      <p id="triviaFeedback" class="feedback" aria-live="polite"></p>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
