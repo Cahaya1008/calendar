@@ -147,6 +147,12 @@ function updateCipherDisplay(){
     decodedTextEl.classList.add('hidden');
   }
 }
+// Navigate to final decoding page
+cipherTextEl.addEventListener('click', () => {
+  if (decodedTextEl.classList.contains('hidden')) {
+    window.location.href = 'final.html';
+  }
+});
 
 function persistProgress(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(foundLetters));
