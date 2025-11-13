@@ -1,1 +1,44 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final Message</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <h1>🎁 The Final Cipher 🎁</h1>
+  <p>Use your 15 collected letters to unlock the secret message.</p>
+
+  <div id="cipherArea" class="cipher-area">
+    <p id="cipherDisplay">_ _ _ _  _ _ _ _ _  _ _ _ _ _  _ _ _ _  _ _ _ _ _  _ _ _ _ _ _ _ _ _ _</p>
+  </div>
+
+  <input type="text" id="guess" placeholder="Your guess..." />
+  <button id="checkBtn">Check</button>
+  <p id="result"></p>
+
+  <button id="backButton">⬅ Back to Calendar</button>
+
+  <script>
+    const secretMessage = "love knows not its depth till the hour of separation";
+
+    document.getElementById("checkBtn").addEventListener("click", () => {
+      const guess = document.getElementById("guess").value.trim().toLowerCase();
+      const result = document.getElementById("result");
+      if (guess === secretMessage) {
+        result.textContent = "✨ Correct! The message is revealed: " + secretMessage;
+        result.style.color = "lime";
+      } else {
+        result.textContent = "❌ Not quite. Keep trying!";
+        result.style.color = "red";
+      }
+    });
+
+    document.getElementById("backButton").addEventListener("click", () => {
+      window.location.href = "../index.html";
+    });
+  </script>
+</body>
+</html>
