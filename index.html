@@ -1,23 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advent Calendar</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Advent Gift</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>🎄 Advent Calendar 🎄</h1>
+  <!-- Snow & Stars -->
+  <div id="snow-container" aria-hidden="true"></div>
+  <div id="stars-container" aria-hidden="true"></div>
 
-  <div id="calendar" class="calendar"></div>
+  <header class="hero">
+    <h1>Advent Gift</h1>
+    <p class="hint">✨ The stars hide secrets… but only a few do.</p>
+  </header>
 
-  <div id="collectedLetters" class="collected-letters">
-    <em>No letters collected yet.</em>
-  </div>
+  <main>
+    <section id="calendar" class="calendar" aria-label="Advent calendar"></section>
 
-  <div class="bottom-bar">
-    <button id="resetProgress">Reset Progress</button>
-    <p id="cipherText" class="cipher-link">🔐 Secret Message — click to decode!</p>
+    <section class="panel">
+      <h3>Collected Letters</h3>
+      <div id="collectedLetters" class="collected">(none yet)</div>
+    </section>
+
+    <div class="controls">
+      <button id="resetProgress" class="btn">Reset Progress</button>
+      <button id="finalBtn" class="btn">Secret (placeholder)</button>
+    </div>
+  </main>
+
+  <!-- Trivia modal -->
+  <div id="triviaModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-inner">
+      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+      <h2 id="modalTitle">Star Trivia</h2>
+      <p id="modalQuestion"></p>
+      <input id="modalAnswer" type="text" placeholder="Type your answer" />
+      <div class="modal-actions">
+        <button id="modalSubmit" class="btn">Submit</button>
+      </div>
+      <p id="modalFeedback" class="feedback" aria-live="polite"></p>
+    </div>
   </div>
 
   <script src="script.js"></script>
