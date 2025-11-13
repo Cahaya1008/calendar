@@ -1,48 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Advent Gift</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advent Calendar</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Snow & Stars -->
-  <div id="snow-container" aria-hidden="true"></div>
-  <div id="stars-container" aria-hidden="true"></div>
+  <!-- Background elements -->
+  <div id="stars-container"></div>
+  <div id="snow-container"></div>
 
-  <header class="hero">
-    <h1>Advent Gift</h1>
-    <p class="hint">✨ The stars hide secrets… but only a few do.</p>
-  </header>
+  <h1 class="title">✨ Advent Calendar ✨</h1>
+  <p class="hint">The stars hide secrets... but only a few stars do.</p>
 
-  <main>
-    <section id="calendar" class="calendar" aria-label="Advent calendar"></section>
+  <div id="calendar" class="calendar-grid"></div>
 
-    <section class="panel">
-      <h3>Collected Letters</h3>
-      <div id="collectedLetters" class="collected">(none yet)</div>
-    </section>
-
-    <div class="controls">
-      <button id="resetProgress" class="btn">Reset Progress</button>
-      <button id="finalBtn" class="btn">Secret (placeholder)</button>
-    </div>
-  </main>
-
-  <!-- Trivia modal -->
-  <div id="triviaModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-inner">
-      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
-      <h2 id="modalTitle">Star Trivia</h2>
-      <p id="modalQuestion"></p>
-      <input id="modalAnswer" type="text" placeholder="Type your answer" />
-      <div class="modal-actions">
-        <button id="modalSubmit" class="btn">Submit</button>
-      </div>
-      <p id="modalFeedback" class="feedback" aria-live="polite"></p>
-    </div>
+  <div id="collected-letters" class="collected-letters">
+    <h3>Collected Letters:</h3>
+    <p id="letters">None yet!</p>
   </div>
+
+  <button id="resetProgress" class="reset-btn">Reset Progress</button>
 
   <script src="script.js"></script>
 </body>
