@@ -1,38 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Day 1</title>
-  <link rel="stylesheet" href="../style.css" />
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Day 1 — Word Puzzle</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <style>
+    main{max-width:720px;margin:30px auto;color:#dbeeff;padding:0 18px}
+    .puzzle{background:rgba(255,255,255,0.03);padding:16px;border-radius:10px}
+    .back{margin-top:18px}
+  </style>
 </head>
-<body class="day-page">
-  <div class="day-content">
-    <h1>🎁 Day 1 Challenge</h1>
-    <p>Welcome to the first day of December! Your quest begins...</p>
-    <p>Riddle: What has roots as nobody sees, is taller than trees, up, up it goes, and yet never grows?</p>
-    <input type="text" id="answer" placeholder="Your answer..." />
-    <button id="submit">Submit</button>
-    <p id="result"></p>
+<body>
+  <main>
+    <h1>Day 1 — Word Puzzle</h1>
+    <section class="puzzle">
+      <p>Guess the 5-letter Christmas-themed word.</p>
+      <p>Clue: People sing these in winter — _ _ _ _ _</p>
+      <input id="guess" maxlength="5" placeholder="Type 5 letters" />
+      <button id="check">Check</button>
+      <p id="res"></p>
+    </section>
 
-    <button id="backButton">⬅ Back to Calendar</button>
-  </div>
+    <div class="back">
+      <button onclick="location.href='../index.html'">⬅ Back to Calendar</button>
+    </div>
+  </main>
 
   <script>
-    document.getElementById("backButton").addEventListener("click", () => {
-      window.location.href = "../index.html";
-    });
+    const ANSWER = 'CAROL';   // puzzle answer
+    const AWARD = 'C';        // letter to award for this day when solved
+    const STORAGE = 'advent_collected_letters_v1';
 
-    document.getElementById("submit").addEventListener("click", () => {
-      const ans = document.getElementById("answer").value.trim().toLowerCase();
-      const result = document.getElementById("result");
-      if (ans === "mountain") {
-        result.textContent = "✅ Correct! You’ve earned a hidden letter: A";
-        result.style.color = "lime";
-        localStorage.setItem("day1Completed", true);
+    const res = document.getElementById('res');
+    document.getElementById('check').addEventListener('click', () => {
+      const g = (document.getElementById('guess').value || '').trim().toUpperCase();
+      if (g.length !== 5) { res.textContent = 'Please enter 5 letters.'; return; }
+      if (g === ANSWER) {
+        res.textContent = '✅ Correct — you found the letter: ' + AWARD;
+        // save letter to same storage as index
+        const now = JSON.parse(localStorage.getItem(STORAGE) || '[]');
+        if (!now.includes(AWARD)) {
+          now.push(AWARD);
+          localStorage.setItem(STORAGE, JSON.stringify(now));
+        }
       } else {
-        result.textContent = "❌ Try again!";
-        result.style.color = "red";
+        res.textContent = '❌ Not quite — try again!';
       }
     });
   </script>
