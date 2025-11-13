@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 1</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body class="day-page">
+  <div class="day-content">
+    <h1>🎁 Day 1 Challenge</h1>
+    <p>Welcome to the first day of December! Your quest begins...</p>
+    <p>Riddle: What has roots as nobody sees, is taller than trees, up, up it goes, and yet never grows?</p>
+    <input type="text" id="answer" placeholder="Your answer..." />
+    <button id="submit">Submit</button>
+    <p id="result"></p>
+
+    <button id="backButton">⬅ Back to Calendar</button>
+  </div>
+
+  <script>
+    document.getElementById("backButton").addEventListener("click", () => {
+      window.location.href = "../index.html";
+    });
+
+    document.getElementById("submit").addEventListener("click", () => {
+      const ans = document.getElementById("answer").value.trim().toLowerCase();
+      const result = document.getElementById("result");
+      if (ans === "mountain") {
+        result.textContent = "✅ Correct! You’ve earned a hidden letter: A";
+        result.style.color = "lime";
+        localStorage.setItem("day1Completed", true);
+      } else {
+        result.textContent = "❌ Try again!";
+        result.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
